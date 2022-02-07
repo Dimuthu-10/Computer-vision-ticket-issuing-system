@@ -7,11 +7,24 @@
     <title>Flask web APP</title>
 </head>
 <body>
+
     <h1>Highway Web APP </h1>
     <p>This is the sample template for highway web app</p>
+
     <form action="/" method="POST" enctype="multipart/form-data">
-        <input type="file" name="predict_image"> <br> <br>
+        <input type="file" name="predict_image" id="pwd"> <br> <br>
         <button type="submit">Predict Image</button>
     </form>
+
+    <div>
+        {% if prediction %}
+        <img src="{{ img_path }}", height=300px, width=300px>
+        <h1>Your Prediction is: <i>{{ prediction }}</i></h1>
+
+        {% else %}
+        <h1>you have entered Wrong Image</h1>
+
+        {% endif %}
+    </div>
 </body>
 </html>
