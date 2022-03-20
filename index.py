@@ -1,30 +1,21 @@
 import base64
 import os
+from io import BytesIO as _BytesIO
 
-import matplotlib
-import tensorflow as tf
+import dash_core_components as dcc
+import dash_html_components as html
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
-import dash_core_components as dcc
-import dash_html_components as html
+import tensorflow as tf
+from PIL import Image
 from dash.dependencies import Input, Output, State
-
-from object_detection.utils import label_map_util
-from object_detection.utils import visualization_utils as viz_utils
 from object_detection.builders import model_builder
 from object_detection.utils import config_util
-import cv2
-import numpy as np
-from matplotlib import pyplot as plt
-%matplotlib inline
-import easyocr
+from object_detection.utils import label_map_util
+from object_detection.utils import visualization_utils as viz_utils
 
-
-from PIL import Image
 from app import app
-from app import server
-from io import BytesIO as _BytesIO
 
 app.layout = html.Div([html.Div([
     dcc.Upload(
@@ -103,6 +94,7 @@ def parse_image(contents):
     model1 = tf.keras.models.load_model('models/Resnet50.hdf5')  # load the vehicle and non vehicle model
     content_type, content_string = contents.split(",")
     image,image1 = b64_to_numpy(content_string)
+    original_img = b64_to_pil(content_string)[1]
     image = image.reshape((1, 128, 128, 3))
     image1 = image1.reshape(1, 224, 224, 3)
     pred1 = model1.predict(image)
@@ -118,6 +110,8 @@ def parse_image(contents):
         p = sorted(list(p), key=lambda z: z[1], reverse=True)[:20]
         temp = pd.DataFrame(data=p, columns=['label', 'prob'])
         temp['text'] = [f'{round(t * 100, 2)}%' for t in temp.prob]
+
+        numberplate = number_plate(original_img)
 
         bar = go.Figure(data=[go.Bar(x=temp.prob,
                                      y=temp.label,
@@ -137,6 +131,7 @@ def parse_image(contents):
 
         return html.Div([html.H2('Vehicle detection APP'),
                          html.P('for detections upload a image to agent which is vehicle types'),
+                         html.H2(f"The Number is = {numberplate}"),
                          dcc.Graph(id='bar',
                                    figure=bar,
                                    config={
@@ -153,9 +148,9 @@ def parse_image(contents):
         return html.Div([html.H2('Vehicle detection web APP'),html.H3('This is not a vehicle')])
 
 #Numberplate Reading
-def Numberplate():
-    # #Making paths
 
+def number_plate(img):
+    # #Making paths
     CUSTOM_MODEL_NAME = 'my_ssd_mobnet'
     PRETRAINED_MODEL_NAME = 'ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8'
     PRETRAINED_MODEL_URL = 'http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8.tar.gz'
@@ -187,13 +182,13 @@ def Numberplate():
     for path in paths.values():
         if not os.path.exists(path):
             if os.name == 'posix':
-                !mkdir - p {path}
+                os.mkdir(path)
             if os.name == 'nt':
-                !mkdir {path}
-    if not os.path.exists(os.path.join(paths['APIMODEL_PATH'], 'research', 'object_detection')):
-        !git clone https://github.com/tensorflow/models {paths['APIMODEL_PATH']}
-    else:
-        print("file already exist")
+                os.mkdir(path)
+    # if not os.path.exists(os.path.join(paths['APIMODEL_PATH'], 'research', 'object_detection')):
+    #     git clone https://github.com/tensorflow/models {paths['APIMODEL_PATH']}
+    # else:
+    #     print("file already exist")
 
 
     # Load pipeline config and build a detection model
@@ -212,10 +207,11 @@ def Numberplate():
         return detections
 
     category_index = label_map_util.create_category_index_from_labelmap(files['LABELMAP'])
-    IMAGE_PATH = os.path.join(paths['IMAGE_PATH'], 'test', 'Cars431.png')
+    # IMAGE_PATH = os.path.join(paths['IMAGE_PATH'], 'test', 'Cars431.png')
 
-    img = cv2.imread(IMAGE_PATH)
+    # img = cv2.imread(IMAGE_PATH)
     image_np = np.array(img)
+    # image_np = input_image
 
     input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
     detections = detect_fn(input_tensor)
@@ -239,37 +235,57 @@ def Numberplate():
         category_index,
         use_normalized_coordinates=True,
         max_boxes_to_draw=5,
-        min_score_thresh=.1)
+        min_score_thresh=.5)
     # agnostic_mode=False)
 
-    plt.imshow(cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB))
-    plt.show()
+    # plt.imshow(cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB))
+    # plt.show()
 
     # Reading numberplate
-    detection_threshold = 0.5
+
+
+    def box_filters(threshold):
+        scores = list()
+        for i in detections['detection_scores']:
+            # print(i,type(i))
+
+            if i>threshold:
+                scores.append(i)
+        return scores
+
+    import easyocr
+    detection_threshold = 0.1
     image = image_np_with_detections
-    scores = list(filter(lambda x: x > detection_threshold, detections['detection_scores']))
+    # scores = list(filter(lambda x:(x > detection_threshold), detections['detection_scores']))
+    scores = box_filters(detection_threshold)
+    # print(scores)
+
     boxes = detections['detection_boxes'][:len(scores)]
+    # print(detections['detection_scores'])
+
     classes = detections['detection_classes'][:len(scores)]
+    # print(detections['detection_classes'][:len(scores)])
 
     width = image.shape[1]
     height = image.shape[0]
 
+    # ocr_result = None
     # Apply ROI filtering and OCR
+    ocr_result = None
     for idx, box in enumerate(boxes):
-        print(box)
+        # print(box)
         roi = box * [height, width, height, width]
-        print(roi)
+        # print(roi)
         region = image[int(roi[0]):int(roi[2]), int(roi[1]):int(roi[3])]
         reader = easyocr.Reader(['en'])
         ocr_result = reader.readtext(region)
-        print(ocr_result)
-        plt.imshow(cv2.cvtColor(region, cv2.COLOR_BGR2RGB))
+        # print(ocr_result)
+        # plt.imshow(cv2.cvtColor(region, cv2.COLOR_BGR2RGB))
+        for result in ocr_result:
+            # print(np.sum(np.subtract(result[0][2],result[0][1])))
+            print(result[1])
 
-    for result in ocr_result:
-        print(np.sum(np.subtract(result[0][2], result[0][1])))
-        print(result[1])
-
+    return [result[1] for result in ocr_result]
 #end of the numberplate reading
 
 @app.callback([Output('output-image-upload', 'children'),
