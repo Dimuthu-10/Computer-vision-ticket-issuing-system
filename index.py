@@ -2,12 +2,14 @@ import base64
 import os
 from io import BytesIO as _BytesIO
 
+import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 import tensorflow as tf
+import dash_bootstrap_components as dbc
 from PIL import Image
 from dash.dependencies import Input, Output, State
 from object_detection.builders import model_builder
@@ -17,38 +19,123 @@ from object_detection.utils import visualization_utils as viz_utils
 
 from app import app
 
-app.layout = html.Div([html.Div([
-    dcc.Upload(
-        id='upload-image',
-        children=html.Div([
-            'Drag and Drop or ',
-            html.A('Select Files')
+app = dash.Dash(__name__,external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+app.layout = html.Div([
+    html.Nav([
+    dbc.NavbarSimple(
+    brand="Highway Web APP",
+    brand_href="#",
+    color="info",
+    dark=True,),
+    ]),
+    html.Div(id='main-div', children=[
+        html.Div(id='upload-div', children=[
+            html.Div(id='upload-div-wrap', children=[
+                html.Div(id='output-image-upload'),
+                html.Div(id='upload',
+                    children = dcc.Upload(
+                        id='upload-image',
+                        children=html.Div([
+                            dbc.Button("Add files", color="primary", className="me-1")]),
+                        multiple=False,
+                    )),
+            ]),
+            html.Div(id='price-card-wrap',
+                children=html.Div(
+                    id='price-card',
+                    children=dbc.Card(
+                        [dbc.CardBody(
+                           id='card-body'
+                        )],
+                        style={"width": "12rem", 'height': '12rem'},
+                    )
+            ))
         ]),
-        style={
-            'width': '100%',
-            'height': '60px',
-            'lineHeight': '60px',
-            'borderWidth': '1px',
-            'borderStyle': 'dashed',
-            'borderRadius': '5px',
-            'textAlign': 'center',
-            'margin': '0'
-        },
-        # Allow multiple files to be uploaded
-        multiple=False
-    ),
-    html.Div(id='output-image-upload')
-], style={
-    'width': '400px',
-    'height' : '400px'
-}),
+        #dropdowns
+        html.Div(id='dropdown-wrap', children=[
+            html.Div(id='entrance-wrap', children=[
+                html.Div(id='entrance-label',children = html.H2('Entrance Location')),
+                dcc.Dropdown(id='Entrance-locations',
+                     options= [{'label' :'Ja-ela', 'value': '1'},
+                            {'label' : 'Kerawalapitiya', 'value': '2'},
+                            {'label' : 'Peliyagoda', 'value': '3'},
+                            {'label' : 'Kadawatha', 'value': '4'},
+                            {'label' : 'Kaduwela', 'value': '5'},
+                            {'label' : 'Athurugiriya', 'value': '6'},
+                            {'label' : 'Kottawa', 'value': '7'},
+                            {'label' : 'Kahathuduwa', 'value': '8'},
+                            {'label' : 'Gelanigama', 'value': '9'},
+                            {'label' : 'Dodangoda', 'value': '10'},
+                            {'label' : 'welipenna', 'value': '11'},
+                            {'label' : 'Kurundugahahetepma', 'value': '12'},
+                            {'label' : 'Baddeagama', 'value': '13'},
+                            {'label' : 'Pinnaduwa', 'value': '14'},
+                            {'label' : 'Imaduwa', 'value': '15'},
+                            {'label' : 'Kokmaduwa', 'value': '16'},
+                            {'label' : 'Godagama', 'value': '17'}],
+                     value='1'
+                ),
+                html.Div(id='entrance-container')
+            ]),
+            html.Div(id='exit-wrap', children=[
+                html.Div(id='exit-label',children = html.H2('Exit Location')),
+                dcc.Dropdown(id='exit-locations',
+                     options=[{'label': 'Ja-ela', 'value': '1'},
+                              {'label': 'Kerawalapitiya', 'value': '2'},
+                              {'label': 'Peliyagoda', 'value': '3'},
+                              {'label': 'Kadawatha', 'value': '4'},
+                              {'label': 'Kaduwela', 'value': '5'},
+                              {'label': 'Athurugiriya', 'value': '6'},
+                              {'label': 'Kottawa', 'value': '7'},
+                              {'label': 'Kahathuduwa', 'value': '8'},
+                              {'label': 'Gelanigama', 'value': '9'},
+                              {'label': 'Dodangoda', 'value': '10'},
+                              {'label': 'welipenna', 'value': '11'},
+                              {'label': 'Kurundugahahetepma', 'value': '12'},
+                              {'label': 'Baddeagama', 'value': '13'},
+                              {'label': 'Pinnaduwa', 'value': '14'},
+                              {'label': 'Imaduwa', 'value': '15'},
+                              {'label': 'Kokmaduwa', 'value': '16'},
+                              {'label': 'Godagama', 'value': '17'}],
+                     value='1'),
+                html.Div(id='exit-container')
+            ]),
+
+        ])
+        #dropdown end
+    ]),
+
+
+
     html.Div(id='results',
              style={
                  'width': '50%'
              })
-], style={'display': 'flex'})
+], style={})
+
+@app.callback([Output('output-image-upload', 'children'),
+               Output('card-body', 'children')],
+              Input('upload-image', 'contents'),
+              State('upload-image', 'filename'))
+def update_output(list_of_contents, list_of_names):
+    if list_of_contents is not None:
+        return [[parse_contents(list_of_contents, list_of_names)], [parse_image(list_of_contents)]]
+
+@app.callback(
+    Output('entrance-container', 'children'),
+    Input('Entrance-locations', 'value'))
+def update_output(value):
+    return f'You have selected {value}'
+
+@app.callback(
+    Output('exit-container', 'children'),
+    Input('exit-locations', 'value'))
+def update_output(value):
+    return f'You have selected {value}'
 
 
+#Functions
 def b64_to_pil(string):
     decoded = base64.b64decode(string)
     buffer = _BytesIO(decoded)
@@ -113,34 +200,28 @@ def parse_image(contents):
 
         numberplate = number_plate(original_img)
 
-        bar = go.Figure(data=[go.Bar(x=temp.prob,
-                                     y=temp.label,
-                                     text=temp.text,
-                                     orientation='h')])
-        bar.update_layout(hovermode=False,
-                          paper_bgcolor='#fff',
-                          plot_bgcolor='#fff',
-                          height=800,
-                          margin_pad=10,
-                          xaxis=dict(showline=False,
-                                     showgrid=False,
-                                     showticklabels=False),
-                          yaxis=dict(showline=False,
-                                     showgrid=False)
-                          )
+        # bar = go.Figure(data=[go.Bar(x=temp.prob,
+        #                              y=temp.label,
+        #                              text=temp.text,
+        #                              orientation='h')])
+        # bar.update_layout(hovermode=False,
+        #                   paper_bgcolor='#fff',
+        #                   plot_bgcolor='#fff',
+        #                   height=800,
+        #                   margin_pad=10,
+        #                   xaxis=dict(showline=False,
+        #                              showgrid=False,
+        #                              showticklabels=False),
+        #                   yaxis=dict(showline=False,
+        #                              showgrid=False)
+        #                   )
 
-        return html.Div([html.H2('Vehicle detection APP'),
-                         html.P('for detections upload a image to agent which is vehicle types'),
-                         html.H2(f"The Number is = {numberplate}"),
-                         dcc.Graph(id='bar',
-                                   figure=bar,
-                                   config={
-                                       'displayModeBar': False
-                                   },
-                                   style={'position': 'static',
-                                          'padding': '0px 30px'}
-                                   )
-                         ])
+        return html.Div([
+            html.H4(f"Vehicle = {temp['label'][0]}", className="card-title"),
+            html.P(f"Number = {numberplate}",
+                   className="card-text")
+        ])
+
     if p1 is not 'vehicle':
         print('this is not a vehicle')
         print(p1)
@@ -288,14 +369,8 @@ def number_plate(img):
     return [result[1] for result in ocr_result]
 #end of the numberplate reading
 
-@app.callback([Output('output-image-upload', 'children'),
-               Output('results', 'children')],
-              Input('upload-image', 'contents'),
-              State('upload-image', 'filename'))
-def update_output(list_of_contents, list_of_names):
-    if list_of_contents is not None:
-        return [[parse_contents(list_of_contents, list_of_names)], [parse_image(list_of_contents)]]
+
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
