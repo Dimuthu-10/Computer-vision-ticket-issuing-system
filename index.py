@@ -10,6 +10,8 @@ import pandas as pd
 import plotly.graph_objs as go
 import tensorflow as tf
 import dash_bootstrap_components as dbc
+import mysql.connector
+from mysql.connector import Error
 from PIL import Image
 from dash.dependencies import Input, Output, State
 from object_detection.builders import model_builder
@@ -136,6 +138,71 @@ def update_output(value):
 
 
 #Functions
+
+#functions related to database Connection
+def database_connection():
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='highway',
+                                             user='root',
+                                             password='')
+        if connection.is_connected():
+            db_Info = connection.get_server_info()
+            print("Connected to MySQL Server version ", db_Info)
+            cursor = connection.cursor()
+            cursor.execute("select database();")
+            record = cursor.fetchone()
+            print("You're connected to database: ", record)
+    except Error as e:
+        print("Error while connecting to MySQL", e)
+    # finally:
+    #     if connection.is_connected():
+    #         cursor.close()
+    #         connection.close()
+    #         print("MySQL connection is closed")
+
+def database_insert():
+    try:
+        connection = database_connection()
+
+        # the query that need to enter
+        insert_query = """INSERT INTO vehicle_records (Id, vehicle_number, vehicle type, vehicle_category_id,
+                            entrance_location_id,entrance_dateTime,exit_location_id,exit_dateTime,price_id) 
+                           VALUES 
+                           (15, 'Lenovo ThinkPad P71', 6459, '2019-08-14') """
+
+        cursor = connection.cursor()
+        cursor.execute(insert_query)
+        connection.commit()
+        print(cursor.rowcount, "Record inserted successfully into Laptop table")
+        cursor.close()
+    except mysql.connector.Error as error:
+        print("Failed to insert record into table {}".format(error))
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection is closed")
+
+def database_read():
+    try:
+        connection = database_connection()
+
+        #the query that need to enter
+        select_Query = "select * from Laptop"
+        cursor = connection.cursor()
+        cursor.execute(select_Query)
+
+    except mysql.connector.Error as e:
+        print("Error reading data from MySQL table", e)
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            print("MySQL connection is closed")
+
+
+#functions related to machine learning model
 def b64_to_pil(string):
     decoded = base64.b64decode(string)
     buffer = _BytesIO(decoded)
