@@ -28,4 +28,30 @@ These are the most basic expectations of the system.
 
 #### SRS Diagram 
 <!-- ![srs diagram](https://user-images.githubusercontent.com/58289018/170037033-b9aaadbe-731b-4b38-9c04-25d3f430cc51.png | width=400) -->
-<img src="https://your-image-url.type](https://user-images.githubusercontent.com/58289018/170037033-b9aaadbe-731b-4b38-9c04-25d3f430cc51.png" width="400" height="300">
+<img src="https://user-images.githubusercontent.com/58289018/170037033-b9aaadbe-731b-4b38-9c04-25d3f430cc51.png" width="600" height="400">
+
+### Functional Requirements
+- Capture the vehicle type
+- Capture the license plate
+- Read the license plate
+- Store the vehicle type, license plate, and the entered time in the database
+- Capture again license plate at the exit
+- Read the license plate and retrieve the stored data using a query
+- Calculate the bill for each vehicle
+- Print the bill
+
+### Non-Functional Requirements
+- Performance should be fast and correct. That is why it is important to use a virtual environment to deploy the application.
+- Availability is an important part of this system. Because this system is a real-time application. We can’t shut it down after the deployment. Therefore, we have to use a backup power supply and stable network connection to keep availability.
+- Reliability is also the main part of this system. Because the number plate reading part is the main input of this system.
+- Capacity is also the main part. A considerable number of vehicles is entering the highway in one hour.
+
+### Future work
+When talking about the future implantation, there are lots of things to do to perform a fully automated system. Because this system must be reliable and faster than the existing systems. Therefore, future works need to do the things below
+- Deploy the developed system into the virtual environment.
+- Create and web-based creative user interface.
+- Develop the existing architecture with high accuracy.
+- Develop a mobile application for vehicle owners.
+- Create a payment gateway to perform transactions.
+- Use a real-time detection method to identify the vehicles.
+- Train existing CNN with the heavy and clean database related to our country vehicles.
