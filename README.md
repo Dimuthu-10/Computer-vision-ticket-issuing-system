@@ -25,3 +25,6 @@ The system should provide the following services as intended. These are the prim
 - Using those details generate the bill.
 
 These are the most basic expectations of the system.
+
+#### SRS Diagram 
+![srs diagram](https://user-images.githubusercontent.com/58289018/170037033-b9aaadbe-731b-4b38-9c04-25d3f430cc51.png)
