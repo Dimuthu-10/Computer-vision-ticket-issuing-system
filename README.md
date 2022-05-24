@@ -1,2 +1,27 @@
-# simple-flask-webApp
-This is a simple flask web app for the task with flask learning
+# Computer Vision ticket Issuing System
+
+### Introduction
+An automated ticket issuing system is a system that is powered by computer vision. In a traditional ticket issuing system, the user has to enter the vehicle number and other specific details manually in the system. Mainly most of the parking ticket issuing system has a vehicle number as the main input. The user has to enter it manually by asking the vehicle owner or look by himself. And also, the system user has to identify the vehicle type and update the bill with the vehicle type to generate the bill for the vehicle type. But through this project, I have proposed an automated ticket issuing system that the capturing vehicle number plate and detects the vehicle type with computer vision, and stores them in the database. And issuing a ticket related to the vehicle types and the related to the vehicle number. And also develop a mobile application for highway users to make them more familiar and keep zero contact with other people. Through that mobile application highways, users can make payments by scanning QR codes. In a pandemic situation like this, it is important to keep minimum contact with another person. Therefore, this automated ticket issuing system plays a major role to keep minimum contact between two people and reducing significant paper costs through this system. Because of this pandemic situation. All the activities are getting automated step by step. Therefore, this will be the most suitable project for the present pandemic situation.
+
+### Scope of the completed project
+When considering the whole project scope, it has a very large project scope complete and archives through the functionalities. But as the main functionalities can be identified few main functionalities. Because all the other functionalities depend on the main functionalities. When listing downing the main functionalities.
+- The first one is identifying the vehicle type and detecting the vehicle type when the vehicle is entering the premises or the road. Because most of the ticket issuing systems the ticket prices are depending on the vehicle type. Therefore, the application should identify the vehicle type and decide what the vehicle is in what category and decide the price that needs to pay.
+- The second one is identifying the vehicle license plate and reading the license plate numbers through the application. Because the system needs to identify each vehicle using a number plate. Therefore, the system needs to read the license plate data related to each and every entry of the vehicle.
+- The third one is to retrieve the stored data related to the vehicle categories and stored data related to each and every vehicle number. Because as I mentioned in the first functionality application identifies the vehicle type and should be retrieved data from the database related to identified vehicle category. And also the system needs to keep records for entry of each and every vehicle for analysis purposes and also the prediction purpose.
+
+These things are the main functionalities of the proposed system. As I mentioned earlier the other functionalities are additional and simple for this system. Therefore, I have decided to complete the main functionalities in the given time. Because when trying to archive all the functionalities takes a much longer time period to complete. I should have mentioned here that those functionalities are not achievable in the given time period. Because it takes time to archive. That is why I need to focus on the main functionalities in the given time period. When listing down the other simple functionalities,
+- Create a payment gateway to achieve mobile payment using QR code.
+- Bill printing functionality.
+- Fixed location functionality.
+- Introduce the mobile app for parking users to achieve mobile payments.
+- Introduce the prepaid recharge card for the daily users who use parking or the highway.
+
+### Specification and Design
+The system should provide the following services as intended. These are the primary goals the system is expected to achieve.
+- Detect the vehicle and identify the vehicle number plate.
+- Detect the vehicle license plate and read the characters of that.
+- Store the entrance details in the relevant database
+- At the exit point identify again the vehicle and retrieve the entry details to calculate the price and create the bill.
+- Using those details generate the bill.
+
+These are the most basic expectations of the system.
